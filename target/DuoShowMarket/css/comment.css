@@ -1,0 +1,53 @@
+*{
+	margin: 0;
+}
+.box{
+	width: 100%;
+	margin:20px auto;
+	text-align: center;
+}
+.list{
+	margin: 0 50px;
+	width: 50%;
+	float: left;
+	text-align: center;
+}
+.remark{
+	margin: 0 50px;
+	width: 50%;
+	float: left;
+	text-align: center;
+}
+a{
+	font-size: 50px;
+	text-decoration: none;
+	color: lightgray;
+}
+span{
+	font-size: 20px;
+	padding-top: 10px;
+	margin-left: 50px;
+}
+textarea{
+	width: 500px;
+	height: 200px;
+	resize: none;
+}
+button{
+	padding: 0 auto;
+}
+.c1{
+	color: #FF0000;
+}
+.c2{
+	color: #FF7F00;
+}
+.c3{
+	color: #FFD700;
+}
+.c4{
+	color: #ADFF2F;
+}
+.c5{
+	color: #458B00;
+}

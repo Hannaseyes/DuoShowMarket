@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8" ?>  
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="ytu.limpid.dao.BrandDao">
+	<resultMap type="ytu.limpid.entity.Brand" id="brandResultMap">
+		<id property="id" column="ID" />
+		<result property="name" column="NAME" />
+		<result property="introduce" column="INTRODUCE" />
+		<result property="picture" column="PICTURE" />
+		<result property="type" column="TYPE" />
+	</resultMap>
+	<resultMap type="ytu.limpid.entity.BrandType" id="brandTypeResultMap">
+		<id property="id" column="ID" />
+		<result property="brandType" column="BRAND_TYPE" />
+	</resultMap>
+	<select id="listBrand" resultMap="brandResultMap">
+		select * from DS_BRAND
+	</select>
+	<select id="getBrand" resultMap="brandResultMap">
+		select * from DS_BRAND where ID = #{id}
+	</select>
+	
+	<select id="getBrandType" resultMap="brandTypeResultMap">
+		select * from DS_BRAND_TYPE where ID = #{id}
+	</select>
+	
+	<!-- 增加类型热度 -->
+	<update id="updateTypeHot" parameterType="java.util.Map">
+		update DS_BRAND_TYPE t set t.HOT= TO_NUMBER(t.HOT)+TO_NUMBER(#{hot})
+	</update>
+</mapper>

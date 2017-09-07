@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8" ?>  
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="ytu.limpid.dao.GoodsDao">
+	<resultMap type="ytu.limpid.entity.Goods" id="goodsResultMap">
+		<id property="id" column="ID" />
+		<result property="name" column="NAME" />
+		<result property="brandId" column="BRAND_ID"/>
+		<result property="type" column="TYPE" />
+		<result property="price" column="PRICE" />
+		<result property="surplus" column="SURPLUS" />
+		<result property="picture" column="PICTURE" />
+		<result property="createTime" column="CREATE_TIME" />
+		<result property="introduce" column="INTRODUCE" />
+	</resultMap>
+	<select id="listNewGoods" resultMap="goodsResultMap">
+		<if test="userId!=null and userId!=''">  	
+			<![CDATA[select * from (select b.* from DS_PREFERENCE p inner join DS_GOODS b 
+					on p.BRAND_TYPE=b.TYPE  
+		 			order by p.HOT desc) 
+		 			where rownum < 11]]>
+		 </if> 
+		<if test="userId==null or userId==''">  	
+			<![CDATA[select * from(select b.* from DS_BRAND_TYPE t inner join DS_GOODS b 
+			on t.ID=b.TYPE
+			 order by t.hot desc )where rownum<11]]>
+		 </if> 
+	</select>
+	<insert id="addComment" parameterType="ytu.limpid.entity.Comment">
+		<selectKey keyProperty="commentId" order="BEFORE" resultType="int">
+			select COMMENTSEQUENCE.nextval from dual
+		</selectKey>
+		insert into DS_COMMENT(ID,USER_ID,GOODS_ID,CONTENT,STAR,COMMENT_TIME,ORDER_NUMBER)
+		values(#{commentId},#{userId},#{goodsId},#{content},#{star},sysdate,#{orderNumber})
+	</insert>
+	<select id="getGoods" resultMap="goodsResultMap">
+		select * from DS_GOODS where ID=#{id}
+	</select>
+	
+	<select id="getGoodsById" resultMap="goodsResultMap">
+		select * from DS_GOODS where ID in (${goodsId})
+	</select>
+	
+	<select id="getBrandGoods" resultMap="goodsResultMap">
+		select * from DS_GOODS where BRAND_ID =#{brandId}
+	</select>
+</mapper>

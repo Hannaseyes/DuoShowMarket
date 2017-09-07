@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8" ?>  
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- namespace必须定义，非绑定到类或是接口的方式 -->
+<mapper namespace="ytu.limpid.dao.UserDao"><!-- namespace表示独一无二的命名空间 -->
+	<!-- 用户表resultMap -->
+	<resultMap type="ytu.limpid.entity.User" id="userResultMap">
+		<id property="userId" column="ID" />
+		<result property="userName" column="USERNAME" />
+		<result property="userPassword" column="PASSWORD" />
+	</resultMap>
+	<!-- 品牌表resultMap -->
+	<resultMap type="ytu.limpid.entity.Brand" id="brandResultMap">
+		<id property="id" column="ID" />
+		<result property="name" column="NAME" />
+		<result property="introduce" column="INTRODUCE" />
+		<result property="picture" column="PICTURE" />
+		<result property="type" column="TYPE" />
+	</resultMap>
+	<insert id="register" parameterType="ytu.limpid.entity.User">
+		<selectKey keyProperty="userId" order="BEFORE" resultType="int">
+			select USERSEQUENCE.nextval from dual
+		</selectKey>
+		insert into DS_USER(ID,USERNAME,PASSWORD,GRADE,CREATE_TIME)
+		values(#{userId},#{userName},#{userPassword},'0',sysdate)
+	</insert>
+	<!-- 用户登陆 -->
+	<select id="login" resultMap="userResultMap"
+		parameterType="java.util.Map">
+		select * from DS_USER where USERNAME=#{userName} and 
+		PASSWORD = #{userPassword}
+	</select>
+	<!-- 根据ID获取用户偏好品牌 -->
+	<select id="listRecommendBrand" resultMap="brandResultMap"
+		parameterType="java.util.Map">
+		select b.* from DS_PREFERENCE p inner join DS_BRAND b on p.BRAND_ID = b.id 
+		where p.USER_ID = #{userId}
+	</select>
+</mapper>

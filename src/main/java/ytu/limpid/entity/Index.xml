@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8" ?>  
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- namespace必须定义，非绑定到类或是接口的方式 -->
+<mapper namespace="ytu.limpid.dao.IndexDao"><!-- namespace表示独一无二的命名空间 -->
+	<resultMap type="ytu.limpid.entity.Advice" id="adviceResultMap">
+		<id property="adviceId" column="ID" />
+		<result property="adviceContent" column="CONTENT" />
+		<result property="userId" column="USER_ID" />
+	</resultMap>
+	<!-- 添加建议 -->
+	<insert id="addAdvice" parameterType="ytu.limpid.entity.Advice">
+		<selectKey keyProperty="adviceId" order="BEFORE" resultType="int">
+			select ADVICESEQUENCE.nextval from dual
+		</selectKey>
+		insert into DS_ADVICE(ID,USER_ID,CONTENT,CREATE_TIME)
+		values(#{adviceId},#{userId},#{adviceContent},sysdate)
+	</insert>
+	<resultMap type="ytu.limpid.entity.Brand" id="brandResultMap">
+		<id property="id" column="ID" />
+		<result property="name" column="NAME" />
+		<result property="introduce" column="INTRODUCE" />
+		<result property="picture" column="PICTURE" />
+		<result property="type" column="TYPE" />
+	</resultMap>
+	<select id="searchBrand" resultMap="goodsResultMap" parameterType="java.lang.String">
+		select b.* from DS_BRAND a inner join DS_GOODS b on a.id=b.BRAND_ID where a.NAME like '%'||#{content}||'%'
+	</select>
+	
+	<resultMap type="ytu.limpid.entity.Goods" id="goodsResultMap">
+		<id property="id" column="ID" />
+		<result property="name" column="NAME" />
+		<result property="brandId" column="BRAND_ID"/>
+		<result property="type" column="TYPE" />
+		<result property="price" column="PRICE" />
+		<result property="surplus" column="SURPLUS" />
+		<result property="picture" column="PICTURE" />
+		<result property="createTime" column="CREATE_TIME" />
+	</resultMap>
+	<select id="searchGoods" resultMap="goodsResultMap" parameterType="java.lang.String">
+		select * from DS_GOODS t where t.NAME like '%'||#{content}||'%'
+	</select>
+</mapper>

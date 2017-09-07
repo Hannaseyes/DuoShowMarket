@@ -1,0 +1,155 @@
+<?xml version="1.0" encoding="UTF-8" ?>  
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- namespace必须定义，非绑定到类或是接口的方式 -->
+<mapper namespace="ytu.limpid.dao.UserDao"><!-- namespace表示独一无二的命名空间 -->
+	<!-- 用户表resultMap -->
+	<resultMap type="ytu.limpid.entity.User" id="userResultMap">
+		<id property="userId" column="ID" />
+		<result property="userName" column="USERNAME" />
+		<result property="userPassword" column="PASSWORD" />
+	</resultMap>
+	<!-- 购物车表resultMap -->
+	<resultMap type="ytu.limpid.entity.Cart" id="cartResultMap">
+		<id property="id" column="ID" />
+		<result property="userId" column="USER_ID" />
+		<result property="goodsId" column="GOODS_ID" />
+		<result property="goodsNumber" column="GOODS_NUMBER" />
+	</resultMap>
+	<!-- 品牌表resultMap -->
+	<resultMap type="ytu.limpid.entity.Brand" id="brandResultMap">
+		<id property="id" column="ID" />
+		<result property="name" column="NAME" />
+		<result property="introduce" column="INTRODUCE" />
+		<result property="picture" column="PICTURE" />
+		<result property="type" column="TYPE" />
+	</resultMap>
+	<!-- 收货地址表resultMap -->
+	<resultMap type="ytu.limpid.entity.Address" id="addressResultMap">
+		<id property="id" column="ID" />
+		<result property="userId" column="USER_ID" />
+		<result property="address" column="ADDRESS" />
+	</resultMap>
+	<!-- 订单表resultMap -->
+	<resultMap type="ytu.limpid.entity.Order" id="orderResultMap">
+		<id property="id" column="ID" />
+		<result property="userId" column="USER_ID" />
+		<result property="price" column="PRICE" />
+		<result property="createTime" column="CREATE_TIME" />
+		<result property="status" column="STATUS" />
+		<result property="goodsId" column="GOODS_ID" />
+		<result property="address" column="ADDRESS" />
+		<result property="orderNumber" column="ORDER_NUMBER" />
+		<result property="totalPrice" column="TOTAL_PRICE" />
+	</resultMap>
+	
+	<insert id="register" parameterType="ytu.limpid.entity.User">
+		<selectKey keyProperty="userId" order="BEFORE" resultType="int">
+			select USERSEQUENCE.nextval from dual
+		</selectKey>
+		insert into DS_USER(ID,USERNAME,PASSWORD,GRADE,CREATE_TIME)
+		values(#{userId},#{userName},#{userPassword},'0',sysdate)
+	</insert>
+	<!-- 用户登陆 -->
+	<select id="login" resultMap="userResultMap"
+		parameterType="java.util.Map">
+		select * from DS_USER where USERNAME=#{userName} and 
+		PASSWORD = #{userPassword}
+	</select>
+	<!-- 根据参数查询用户 -->
+	<select id="getUser" resultMap="userResultMap"
+		parameterType="java.util.Map">
+		select * from DS_USER where USERNAME=#{userName}
+	</select>
+	<!-- 查询用户购物车 -->
+	<select id="getUserCart" resultMap="cartResultMap"
+		parameterType="java.util.Map">
+		select * from DS_CART where USER_ID=#{userId}
+	</select>
+	<!-- 根据ID获取用户偏好品牌 -->
+	<select id="listRecommendBrand" resultMap="brandResultMap"
+		parameterType="java.util.Map">		
+		<![CDATA[select * from(select b.* from DS_PREFERENCE p inner join DS_BRAND b 
+			on p.BRAND_TYPE=b.TYPE 
+			 and p.USER_ID=${userId} order by p.hot desc)where rownum<4]]>
+	</select>
+	
+	<!-- 查询总体热度品牌 -->
+	<select id="listAllRecommendBrand" resultMap="brandResultMap"
+		parameterType="java.util.Map">		
+		<![CDATA[select * from(select b.* from DS_BRAND_TYPE t inner join DS_BRAND b 
+			on t.ID=b.TYPE order by t.hot desc)
+			where rownum<4 ]]>
+	</select>
+	
+	<!-- 添加收货地址 -->
+	<insert id="addAddress" parameterType="ytu.limpid.entity.Address">
+		<selectKey keyProperty="id" order="BEFORE" resultType="int">
+			select ADDRESSSEQUENCE.nextval from dual
+		</selectKey>
+		insert into DS_ADDRESS(ID,USER_ID,ADDRESS)
+		values(#{id},#{userId},#{address})
+	</insert>
+	
+	<!-- 获取收货地址 -->
+	<select id="getAddress" resultMap="addressResultMap"
+		parameterType="java.util.Map">
+		select * from DS_ADDRESS where USER_ID = #{userId}
+	</select>
+	
+	<!-- 添加订单 -->
+	<insert id="addOrder" parameterType="ytu.limpid.entity.Order">
+		<selectKey keyProperty="id" order="BEFORE" resultType="int">
+			select ORDERIDSEQUENCE.nextval from dual
+		</selectKey>
+		insert into DS_ORDER(ID,USER_ID,PRICE,CREATE_TIME,STATUS,GOODS_ID,ADDRESS,ORDER_NUMBER,TOTAL_PRICE)
+		values(#{id},#{userId},#{price},sysdate,0,#{goodsId},#{address},#{id},#{totalPrice})
+	</insert>
+	
+	<!-- 清空购物车 -->
+	<delete id="deleteCart" parameterType="java.util.Map">
+        delete DS_CART where USER_ID = #{userId}
+        <if test="goodsId!=null and goodsId!=''">  
+        	and GOODS_ID = #{goodsId}  
+    	</if>  
+    </delete>
+    
+    <!-- 添加到购物车 -->
+    <insert id="addCart" parameterType="ytu.limpid.entity.Cart">
+		<selectKey keyProperty="id" order="BEFORE" resultType="int">
+			select CARTSEQUENCE.nextval from dual
+		</selectKey>
+		merge into DS_CART t  
+	    using ( select #{userId,jdbcType=NUMERIC} as userId,#{goodsId,jdbcType=NUMERIC} as goodsId from dual) t1  
+	    on(t.USER_ID = t1.userId and t.GOODS_ID = t1.goodsId)  
+	   	when matched then  
+    	update set GOODS_NUMBER= TO_NUMBER(GOODS_NUMBER)+1
+	    when not matched then  
+	    insert values(#{id,jdbcType=NUMERIC},#{userId,jdbcType=NUMERIC},#{goodsId,jdbcType=NUMERIC},#{goodsNumber,jdbcType=NUMERIC})
+	</insert>
+	
+	<!-- 获取用户订单 -->
+	<select id="getOrder" resultMap="orderResultMap"
+		parameterType="java.util.Map">
+		select * from DS_ORDER where USER_ID = #{userId}
+	</select>
+	
+	<!-- 更新订单状态 -->
+	<update id="updateOrder" parameterType="java.util.Map">
+		update DS_ORDER set STATUS=#{status} where ORDER_NUMBER=#{orderNumber}
+	</update>
+	
+	<!-- 增加用户喜好 -->
+	<insert id="addPreference" parameterType="ytu.limpid.entity.Preference">
+		<selectKey keyProperty="id" order="BEFORE" resultType="int">
+			select PREFERENCESEQUENCE.nextval from dual
+		</selectKey>
+		merge into DS_PREFERENCE t  
+	    using ( select #{userId,jdbcType=NUMERIC} as userId,#{brandType,jdbcType=NUMERIC} as brandType from dual) t1  
+	    on(t.USER_ID = t1.userId and t.BRAND_TYPE = t1.brandType)  
+	   	when matched then  
+    	update set t.HOT= TO_NUMBER(t.HOT)+TO_NUMBER(#{hot})
+	    when not matched then  
+	    insert values(#{id,jdbcType=NUMERIC},#{userId,jdbcType=NUMERIC},#{brandType,jdbcType=NUMERIC},#{hot,jdbcType=NUMERIC})
+	</insert>
+</mapper>
